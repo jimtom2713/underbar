@@ -167,7 +167,7 @@
       accumulator = collection[0];
       collection.shift();
     }
-    console.log('I did this ' + accumulator);
+    // console.log('I did this ' + accumulator);
     _.each(collection, function(val){
       accumulator = iterator(accumulator, val);
     })
@@ -189,12 +189,36 @@
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
+    if(arguments.length <2){
+      //needed to account for the lack of a callback function, iterator.
+      iterator = _.identity;
+    }
+    return _.reduce(collection, function(foundAllItems, item){
+      //ugh needed a true false value hard forced to a boolean. The double !! 
+      // forces a turthy-falsy value to a boolean without using Boolean(). 
+      // not sure if this is the best way to do it but it passes.
+      return !!iterator(item) && foundAllItems;
+    }, true);
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
+    if(arguments.length < 2){
+      iterator = _.identity;
+    }
+    return !(_.every(collection, function(val){
+      return !iterator(val);
+    }))
+/*    for(var i=0; i<collection.length; i++){
+      if(iterator(collection[i])){
+        return true;
+      }
+      else {
+        return false;
+      }
+    }*/
   };
 
 
@@ -217,11 +241,31 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+    //try to do this with _.each later...
+     for(var i = 1;i < arguments.length; i++){
+        // console.log(i);
+        // console.log(arguments[i]);
+        for(var j in arguments[i]){
+            // console.log(j);
+            obj[j] = arguments[i][j];
+            }
+    }
+    return obj;
+    // console.log(obj);
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+    //rewrite with _.each after the other tests are completed
+     for(var i = 1;i < arguments.length; i++){
+      for(var j in arguments[i]){
+        if( !(obj.hasOwnProperty(j)) ){
+          obj[j] = arguments[i][j];
+        }
+      }
+  }
+  return obj;
   };
 
 
@@ -265,6 +309,21 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    //set up a key store object to hold already calculated values
+    var memoValues = {};
+    var slice = Array.prototype.slice;
+    return function(){
+      //look in memoValues based on the func arguments key
+      var args  = slice.call(arguments);
+      // var args = func.arguments;
+      if(args in memoValues){
+        return memoValues[args];
+      }
+      else{
+        return (memoValues[args] = func.apply(this, args));
+      }
+    }
+
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -274,6 +333,10 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+    var slice = Array.prototype.slice;
+    var args = slice.call(arguments);
+    setTimeout(function(){func.apply(this, args.slice(2))
+    }, wait);
   };
 
 
@@ -288,6 +351,16 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+    // var slice = array.prototype.slice;
+    // var args = slice.call(arguments);
+    var args = Array.prototype.slice.call(array,0);
+    for(var i = args.length - 1; i > 0; i--){
+      var randomNumber = Math.floor(Math.random() * (i+1));
+      var tempAssign = args[i];
+      args[i] = args[randomNumber];
+      args[randomNumber] = tempAssign;
+    }
+    return args;
   };
 
 
